@@ -182,7 +182,7 @@
             "autoUpgradeMinorVersion": true,
             "settings": {
               "fileUris": [
-                "https://stpif.blob.core.windows.net/inframigration/psscript01.ps1",
+                "https://raw.githubusercontent.com/anandt1-spektra/my-templates/refs/heads/main/sqldatawarehouse/psscript01.ps1",
                 "https://experienceazure.blob.core.windows.net/templates/cloudlabs-common/cloudlabs-windows-functions.ps1"
               ]
             },
