@@ -119,7 +119,7 @@ if ( $rgname -eq "Synapse-AIAD")
 {
 
 $WebClient = New-Object System.Net.WebClient
-$WebClient.DownloadFile("https://stpif.blob.core.windows.net/inframigration/Automation1_new1.zip","C:\Automation1.zip")
+$WebClient.DownloadFile("https://experienceazure.blob.core.windows.net/templates/synapse-tech-immersion/test-template/Automation1_new1.zip","C:\Automation1.zip")
 
 #unziping folder
 function Expand-ZIPFile($file, $destination)
