@@ -7,7 +7,7 @@ Param (
     [string]$DeploymentID,
     [string]$azuserobjectid,
     [string]$InstallCloudLabsShadow,
-    [string]$adminUsername,
+    [string]$AdminUsername,
     [string]$adminPassword,
     [string]$location,
     [string]$trainerUserName,
@@ -20,11 +20,6 @@ Param (
 # Basic parsing of UPN (kept in case you need tenant name later)
 $Inputstring = $AzureUserName
 $CharArray   = $InputString.Split("@")
-
-if (!(Test-Path "C:\WindowsAzure\Logs"))
-{
-    New-Item -ItemType Directory -Path "C:\WindowsAzure\Logs" -Force | Out-Null
-}
 
 Start-Transcript -Path C:\WindowsAzure\Logs\CloudLabsCustomScriptExtension.txt -Append
 [Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
@@ -48,7 +43,7 @@ CloudlabsManualAgent Install
 
 # Run Imported functions from cloudlabs-windows-functions.ps1
 WindowsServerCommon
-#InstallCloudLabsShadow $ODLID $InstallCloudLabsShadow
+InstallCloudLabsShadow $ODLID $InstallCloudLabsShadow
 
 Function CreateCredFile($AzureUserName, $AzurePassword, $AzureTenantID, $AzureSubscriptionID, $DeploymentID, $AppID, $AppSecret)
 {
@@ -80,7 +75,6 @@ Function CreateCredFile($AzureUserName, $AzurePassword, $AzureTenantID, $AzureSu
 CreateCredFile $AzureUserName $AzurePassword $AzureTenantID $AzureSubscriptionID $DeploymentID $AppID $AppSecret
 InstallModernVmValidator
 
-$vmAdminUsername = $adminUsername
 
 # Enable CloudLabs Embedded Shadow Feature (trainer ↔ VM)
 Enable-CloudLabsEmbeddedShadow $vmAdminUsername $trainerUserName $trainerUserPassword
@@ -211,7 +205,7 @@ cd 'C:\LabFiles'
 
 Start-Sleep -Seconds 5
 
-#Enable-CloudLabsEmbeddedShadow $AdminUsername $trainerUserName $trainerUserPassword
+Enable-CloudLabsEmbeddedShadow $AdminUsername $trainerUserName $trainerUserPassword
 
 
 #Enable Autologon
