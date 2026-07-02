@@ -3,6 +3,7 @@ Param (
     [string]$AzurePassword,
     [string]$AzureTenantID,
     [string]$AzureSubscriptionID,
+    [string]$ODLID,
     [string]$DeploymentID,
     [string]$azuserobjectid,
     [string]$InstallCloudLabsShadow,
