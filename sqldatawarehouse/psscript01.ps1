@@ -3,7 +3,6 @@ Param (
     [string]$AzurePassword,
     [string]$AzureTenantID,
     [string]$AzureSubscriptionID,
-    [string]$ODLID,
     [string]$DeploymentID,
     [string]$azuserobjectid,
     [string]$InstallCloudLabsShadow,
@@ -43,7 +42,7 @@ CloudlabsManualAgent Install
 
 # Run Imported functions from cloudlabs-windows-functions.ps1
 WindowsServerCommon
-InstallCloudLabsShadow $ODLID $InstallCloudLabsShadow
+#InstallCloudLabsShadow $ODLID $InstallCloudLabsShadow
 
 Function CreateCredFile($AzureUserName, $AzurePassword, $AzureTenantID, $AzureSubscriptionID, $DeploymentID, $AppID, $AppSecret)
 {
@@ -75,9 +74,10 @@ Function CreateCredFile($AzureUserName, $AzurePassword, $AzureTenantID, $AzureSu
 CreateCredFile $AzureUserName $AzurePassword $AzureTenantID $AzureSubscriptionID $DeploymentID $AppID $AppSecret
 InstallModernVmValidator
 
+$vmAdminUsername = $adminUsername
 
 # Enable CloudLabs Embedded Shadow Feature (trainer ↔ VM)
-Enable-CloudLabsEmbeddedShadow $adminUsername $trainerUserName $trainerUserPassword
+Enable-CloudLabsEmbeddedShadow $vmAdminUsername $trainerUserName $trainerUserPassword
 
 InstallChocolatey
 
