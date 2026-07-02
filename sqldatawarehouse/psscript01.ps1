@@ -20,6 +20,11 @@ Param (
 $Inputstring = $AzureUserName
 $CharArray   = $InputString.Split("@")
 
+if (!(Test-Path "C:\WindowsAzure\Logs"))
+{
+    New-Item -ItemType Directory -Path "C:\WindowsAzure\Logs" -Force | Out-Null
+}
+
 Start-Transcript -Path C:\WindowsAzure\Logs\CloudLabsCustomScriptExtension.txt -Append
 [Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
 Write-Output "TLS setting: $([Net.ServicePointManager]::SecurityProtocol)"
