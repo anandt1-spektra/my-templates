@@ -1,0 +1,6 @@
+[
+  {
+    "Name": "Filter",
+    "Value": "startswith(displayName, 'AAD DC Administrators')"
+  }
+]
