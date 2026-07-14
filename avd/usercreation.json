@@ -1,0 +1,20 @@
+{
+  "AutoPasswordGeneration": true,
+  "Users": [
+    {
+      "FirstName": "AVD",
+      "LastName": "User01",
+      "UPNPrefix": "AVDUser01",
+      "GlobalAdmin": false,
+      "UserLicenses": []
+    },
+    {
+      "FirstName": "AVD",
+      "LastName": "User02",
+      "UPNPrefix": "AVDUser02",
+      "GlobalAdmin": false,
+      "UserLicenses": []
+    }
+  ],
+  "Licenses": []
+}
