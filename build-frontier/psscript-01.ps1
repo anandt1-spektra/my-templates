@@ -114,6 +114,26 @@ Function CloneLabFiles
 }
 CloneLabFiles
 
+sleep 10 
+
+# Upgrate
+choco --version
+
+choco upgrade vscode -y
+
+sleep 10
+code --install-extension TeamsDevApp.ms-teams-vscode-extension
+
+sleep 5
+choco install visualstudio2022community -y
+
+sleep 5
+
+$WshShell = New-Object -ComObject WScript.Shell
+$Shortcut = $WshShell.CreateShortcut("$env:USERPROFILE\Desktop\Visual Studio 2022.lnk")
+$Shortcut.TargetPath = "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe"
+$Shortcut.Save()
+
 Stop-Transcript
 Disable-ScheduledTask -TaskName "runuserdata"
 Stop-ScheduledTask -TaskName "runuserdata"
