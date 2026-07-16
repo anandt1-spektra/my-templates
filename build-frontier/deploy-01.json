@@ -28,7 +28,7 @@
     }
   },
   "variables": {
-    "scripturl": "https://experienceazure.blob.core.windows.net/templates/tf/frontier-firm-productivity-workiq-copilot-agents/day-1/scripts/psscript.ps1",
+    "scripturl": "https://raw.githubusercontent.com/anandt1-spektra/my-templates/refs/heads/main/build-frontier/psscript-01.ps1",
     "userdata": "[concat('$url = \"', variables('scripturl'),'\"; $arg = \"', variables('arg'), '\"')]",
     "arg": "[concat(variables('arg1'),variables('arg2'),variables('arg3'),variables('arg4'),variables('arg5'))]",
     "arg1": "[concat(' -AzureUserName ', parameters('AzureUserName'), ' -AzurePassword ', parameters('AzurePassword'))]",
