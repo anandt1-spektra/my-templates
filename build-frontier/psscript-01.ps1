@@ -125,7 +125,7 @@ sleep 10
 code --install-extension TeamsDevApp.ms-teams-vscode-extension
 
 sleep 5
-choco install visualstudio2022community -y
+# choco install visualstudio2022community -y
 
 sleep 5
 
