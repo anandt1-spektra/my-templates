@@ -101,7 +101,7 @@
             "autoUpgradeMinorVersion": "true",
             "settings": {
               "fileUris": [
-                "https://experienceazure.blob.core.windows.net/templates/gps-sandbox/smb-security-titan-journey-hackathon/psscript-01.ps1",
+                "https://raw.githubusercontent.com/anandt1-spektra/my-templates/refs/heads/main/build-frontier/psscript-01.ps1",
                 "https://experienceazure.blob.core.windows.net/templates/cloudlabs-common/cloudlabs-windows-functions.ps1"
               ],
               "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File gps-sandbox/smb-security-titan-journey-hackathon/psscript-01.ps1', variables('cloudlabsCommon') , variables('Enable-CloudLabsEmbeddedShadow'))]"
