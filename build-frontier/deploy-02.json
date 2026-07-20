@@ -50,6 +50,11 @@
       "dependsOn": [
         "[concat('Microsoft.Network/networkInterfaces/', variables('networkInterfaceName'))]"
       ],
+      "plan": {
+        "name": "win2022mssd",
+        "publisher": "spektra",
+        "product": "cloudlabs-windows-jumpvm"
+      },
       "properties": {
         "osProfile": {
           "computerName": "[variables('winvirtualMachineName')]",
@@ -64,9 +69,9 @@
         },
         "storageProfile": {
           "imageReference": {
-            "publisher": "MicrosoftWindowsServer",
-            "offer": "WindowsServer",
-            "sku": "2022-datacenter-azure-edition",
+            "publisher": "Spektra",
+            "offer": "cloudlabs-windows-jumpvm",
+            "sku": "win2022mssd",
             "version": "latest"
           },
           "osDisk": {
