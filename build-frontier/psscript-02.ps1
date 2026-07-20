@@ -73,17 +73,19 @@ Function CloneLabFiles
 }
 CloneLabFiles
 
+sleep 5
+choco upgrade nodejs-lts -y
+
 choco --version
 
 choco upgrade vscode -y
+
+code
 
 sleep 10
 code --install-extension TeamsDevApp.ms-teams-vscode-extension
 
 code --install-extension ms-vscode.vscode-typescript-next
-
-sleep 5
-choco upgrade nodejs-lts -y
 
 sleep 5
 choco install visualstudio2022community -y
