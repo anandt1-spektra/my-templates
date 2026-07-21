@@ -73,19 +73,29 @@ Function CloneLabFiles
 }
 CloneLabFiles
 
+# DownloadFiles
+$WebClient = New-Object System.Net.WebClient
+$WebClient.DownloadFile("https://raw.githubusercontent.com/anandt1-spektra/my-templates/refs/heads/main/build-frontier/logontask-02.ps1", "C:\Packages\logontask-02.ps1")
+ 
+#Enable Autologon
+$AutoLogonRegPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"
+Set-ItemProperty -Path $AutoLogonRegPath -Name "AutoAdminLogon" -Value "1" -type String
+Set-ItemProperty -Path $AutoLogonRegPath -Name "DefaultUsername" -Value "$($env:ComputerName)\azureuser" -type String  
+Set-ItemProperty -Path $AutoLogonRegPath -Name "DefaultPassword" -Value "$adminPassword" -type String
+Set-ItemProperty -Path $AutoLogonRegPath -Name "AutoLogonCount" -Value "1" -type DWord
+ 
+# Scheduled Task to Run PostConfig.ps1 screen on logon
+$Trigger= New-ScheduledTaskTrigger -AtLogOn
+$User= "$($env:ComputerName)\azureuser"
+$Action= New-ScheduledTaskAction -Execute "C:\Windows\System32\WindowsPowerShell\v1.0\Powershell.exe" -Argument "-executionPolicy Unrestricted -File C:\Packages\logontask-02.ps1"
+Register-ScheduledTask -TaskName "logontask" -Trigger $Trigger -User $User -Action $Action -RunLevel Highest -Force
+
 sleep 5
 choco upgrade nodejs-lts -y
 
 choco --version
 
 choco upgrade vscode -y
-
-code
-
-sleep 10
-code --install-extension TeamsDevApp.ms-teams-vscode-extension
-
-code --install-extension ms-vscode.vscode-typescript-next
 
 sleep 5
 choco install visualstudio2022community -y
