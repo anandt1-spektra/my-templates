@@ -90,6 +90,8 @@ $User= "$($env:ComputerName)\azureuser"
 $Action= New-ScheduledTaskAction -Execute "C:\Windows\System32\WindowsPowerShell\v1.0\Powershell.exe" -Argument "-executionPolicy Unrestricted -File C:\Packages\logontask-02.ps1"
 Register-ScheduledTask -TaskName "logontask" -Trigger $Trigger -User $User -Action $Action -RunLevel Highest -Force
 
+choco install azure-cli -y
+
 sleep 5
 choco upgrade nodejs-lts -y
 
