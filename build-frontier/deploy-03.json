@@ -46,7 +46,7 @@
     }
   },
   "variables": {
-    "scripturl": "https://testtemplates123.blob.core.windows.net/gps-frontier/testpsscript.ps1",
+    "scripturl": "https://raw.githubusercontent.com/anandt1-spektra/my-templates/refs/heads/main/build-frontier/psscript-03.ps1",
     "userdata": "[concat('$url = \"', variables('scripturl'),'\"; $arg = \"', variables('arg'), '\"')]",
     "arg": "[concat(variables('arg1'),variables('arg2'),variables('arg3'),variables('arg4'),variables('arg5'),variables('arg6'))]",
     "arg1": "[concat(' -AzureUserName ', parameters('AzureUserName'), ' -AzurePassword ', parameters('AzurePassword'))]",
