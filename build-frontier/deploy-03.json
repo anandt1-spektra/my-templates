@@ -29,13 +29,13 @@
     "AppId": {
       "type": "string",
       "metadata": {
-        "description": "Service Principal App ID used by psscript-01.ps1 to authenticate and assign the Approved AI Models policy."
+        "description": "Service Principal App ID used by psscript-03.ps1 to authenticate and assign the Approved AI Models policy."
       }
     },
     "AppSecret": {
       "type": "securestring",
       "metadata": {
-        "description": "Service Principal secret used by psscript-01.ps1 to authenticate and assign the Approved AI Models policy."
+        "description": "Service Principal secret used by psscript-03.ps1 to authenticate and assign the Approved AI Models policy."
       }
     },
     "azuserobjectid": {
