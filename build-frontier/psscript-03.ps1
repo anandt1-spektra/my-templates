@@ -47,7 +47,7 @@ Param (
     $azuserobjectid,
 
     [string]
-    $PolicyJsonUrl = "https://testtemplates123.blob.core.windows.net/gps-frontier/policy-allow-approved-ai-models.json"
+    $PolicyJsonUrl = "https://raw.githubusercontent.com/anandt1-spektra/my-templates/refs/heads/main/build-frontier/policy-allow-approved-ai-models.json"
 )
 
 Start-Transcript -Path C:\WindowsAzure\Logs\CloudLabsCustomScriptExtension.txt -Append
