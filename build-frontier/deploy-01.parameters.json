@@ -25,6 +25,15 @@
     },
     "trainerUserPassword": {
       "value": "GEN-PASSWORD"
+    },
+    "AppId": {
+      "value": "GET-SERVICEPRINCIPAL-APPLICATION-ID"
+    },
+    "AppSecret": {
+      "value": "GET-SERVICEPRINCIPAL-SECRET"
+    },
+    "azuserobjectid": {
+      "value": "GET-AZUSER-OBJECTID"
     }
   }
 }
