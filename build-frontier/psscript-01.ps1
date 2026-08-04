@@ -97,7 +97,7 @@ sleep 5
 Function CloneLabFiles
 {
     $RepoUrl     = "https://github.com/CloudLabsAI-Azure/MsIQ-cplt-agntsfrntr.git"
-    $Branch      = "post-build-SPLabs"
+    $Branch      = "main"
     $SourcePath  = "Lab Files"
     $Destination = "C:\Lab Files"
     $TempDir     = Join-Path $env:TEMP "MsIQ-clone-$(Get-Random)"
