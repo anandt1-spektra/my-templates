@@ -1,7 +1,13 @@
 {
-  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "adminUsername": {
+      "type": "string"
+    },
+    "adminPassword": {
+      "type": "securestring"
+    },
     "AzureUserName": {
       "type": "string"
     },
@@ -14,46 +20,32 @@
     "DeploymentID": {
       "type": "string"
     },
-    "adminUsername": {
-      "type": "string"
-    },
-    "adminPassword": {
-      "type": "securestring"
-    },
     "trainerUserName": {
       "type": "string"
     },
     "trainerUserPassword": {
       "type": "string"
-    }
+    } 
   },
   "variables": {
-    "scripturl": "https://raw.githubusercontent.com/anandt1-spektra/my-templates/refs/heads/main/build-frontier/psscript-01.ps1",
-    "userdata": "[concat('$url = \"', variables('scripturl'),'\"; $arg = \"', variables('arg'), '\"')]",
-    "arg": "[concat(variables('arg1'),variables('arg2'),variables('arg3'),variables('arg4'),variables('arg5'))]",
-    "arg1": "[concat(' -AzureUserName ', parameters('AzureUserName'), ' -AzurePassword ', parameters('AzurePassword'))]",
-    "arg2": "[concat(' -AzureTenantID ', variables('AzureTenantID'), ' -AzureSubscriptionID ', variables('AzureSubscriptionID'))]",
-    "arg3": "[concat(' -ODLID ', parameters('ODLID'), ' -DeploymentID ', parameters('DeploymentID'))]",
-    "arg4": "[concat(' -vmAdminUsername ', parameters('adminUsername'), ' -vmAdminPassword ', parameters('adminPassword'))]",
-    "arg5": "[concat(' -trainerUserName ', parameters('trainerUserName'), ' -trainerUserPassword ', parameters('trainerUserPassword'))]",
-    "AzureTenantID": "[subscription().tenantId]",
+    "cloudlabsCommon": "[concat(' -AzureUserName ', parameters('AzureUserName'), ' -AzurePassword ', parameters('AzurePassword'), ' -AzureTenantID ', variables('AzureTenantID'), ' -AzureSubscriptionID ', variables('AzureSubscriptionID'), ' -ODLID ', parameters('ODLID'), ' -DeploymentID ', parameters('DeploymentID'))]",
+    "Enable-CloudLabsEmbeddedShadow": "[concat(' -vmAdminUsername ', parameters('adminUsername'), '-vmAdminPassword', parameters('adminPassword') , ' -trainerUserName ', parameters('trainerUserName'), ' -trainerUserPassword ', parameters('trainerUserPassword'))]",
     "AzureSubscriptionID": "[subscription().subscriptionId]",
+    "AzureTenantID": "[subscription().tenantId]",
     "location": "[resourceGroup().location]",
-    "rgName": "[resourceGroup().name]",
-    "LabVMName": "[concat('labvm-',parameters('DeploymentID'))]",
-    "networkInterfaceName": "[concat(variables('LabVMName'), '-nic')]",
-    "publicIpAddressName": "[concat(variables('LabVMName'), '-pip')]",
-    "publicIpAddressDNSName": "[concat('lab',parameters('DeploymentID'), 'vm', uniqueString(resourceGroup().id))]",
-    "networkSecurityGroupName": "[concat(variables('LabVMName'), '-nsg')]",
-    "virtualNetworkName": "[concat(variables('LabVMName'), '-vnet')]",
+    "winvirtualMachineName": "[concat('VM-',parameters('DeploymentID'))]",
+    "networkInterfaceName": "[concat(variables('winvirtualMachineName'), '-nic')]",
+    "publicIpAddressName": "[concat('labvmip', uniqueString(resourceGroup().id))]",
+    "networkSecurityGroupName": "nsg",
+    "virtualNetworkName": "vnet",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/','subnet')]"
   },
   "resources": [
     {
-      "name": "[variables('LabVMName')]",
+      "name": "[variables('winvirtualMachineName')]",
       "type": "Microsoft.Compute/virtualMachines",
-      "apiVersion": "2022-11-01",
+      "apiVersion": "2022-03-01",
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "[concat('Microsoft.Network/networkInterfaces/', variables('networkInterfaceName'))]"
@@ -65,7 +57,7 @@
       },
       "properties": {
         "osProfile": {
-          "computerName": "[variables('LabVMName')]",
+          "computerName": "[variables('winvirtualMachineName')]",
           "adminUsername": "[parameters('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]",
           "windowsConfiguration": {
@@ -83,14 +75,12 @@
             "version": "latest"
           },
           "osDisk": {
-            "Name": "[concat(variables('LabVMName'),'-osdisk')]",
             "createOption": "fromImage",
             "managedDisk": {
               "storageAccountType": "Premium_LRS"
             }
           },
-          "dataDisks": [
-          ]
+          "dataDisks": []
         },
         "networkProfile": {
           "networkInterfaces": [
@@ -98,14 +88,37 @@
               "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))]"
             }
           ]
-        },
-        "userData": "[base64(variables('userdata'))]"
-      }
+        }
+      },
+      "resources": [
+        {
+          "type": "extensions",
+          "name": "vmExtension",
+          "apiVersion": "2022-03-01",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[concat('Microsoft.Compute/virtualMachines/', variables('winvirtualMachineName'))]"
+          ],
+          "properties": {
+            "publisher": "Microsoft.Compute",
+            "type": "CustomScriptExtension",
+            "typeHandlerVersion": "1.8",
+            "autoUpgradeMinorVersion": "true",
+            "settings": {
+              "fileUris": [
+                "https://raw.githubusercontent.com/anandt1-spektra/my-templates/refs/heads/main/build-frontier/psscript-02.ps1",
+                "https://experienceazure.blob.core.windows.net/templates/cloudlabs-common/cloudlabs-windows-functions.ps1"
+              ],
+              "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File psscript-02.ps1', variables('cloudlabsCommon') , variables('Enable-CloudLabsEmbeddedShadow'))]"
+            }
+          }
+        }
+      ]
     },
     {
       "name": "[variables('virtualNetworkName')]",
       "type": "Microsoft.Network/virtualNetworks",
-      "apiVersion": "2022-09-01",
+      "apiVersion": "2022-05-01",
       "location": "[resourceGroup().location]",
       "properties": {
         "addressSpace": {
@@ -126,7 +139,7 @@
     {
       "name": "[variables('networkInterfaceName')]",
       "type": "Microsoft.Network/networkInterfaces",
-      "apiVersion": "2022-09-01",
+      "apiVersion": "2022-05-01",
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
@@ -154,13 +167,13 @@
       }
     },
     {
-      "name": "[variables('publicIpAddressName')]",
+      "apiVersion": "2022-05-01",
       "type": "Microsoft.Network/publicIPAddresses",
-      "apiVersion": "2022-09-01",
+      "name": "[variables('publicIpAddressName')]",
       "comments": "Public IP",
       "location": "[resourceGroup().location]",
       "sku": {
-        "name": "Standard"
+          "name": "Standard"
       },
       "tags": {
         "displayName": "Public IP"
@@ -168,14 +181,14 @@
       "properties": {
         "publicIPAllocationMethod": "Static",
         "dnsSettings": {
-          "domainNameLabel": "[variables('publicIpAddressDNSName')]"
+          "domainNameLabel": "[variables('publicIPAddressName')]"
         }
       }
     },
     {
       "name": "[variables('networkSecurityGroupName')]",
       "type": "Microsoft.Network/networkSecurityGroups",
-      "apiVersion": "2022-09-01",
+      "apiVersion": "2022-05-01",
       "location": "[resourceGroup().location]",
       "properties": {
         "securityRules": [
@@ -194,32 +207,32 @@
           }
         ]
       }
-    }
+    }  
   ],
   "outputs": {
     "DeploymentID": {
       "type": "string",
       "value": "[parameters('DeploymentID')]"
     },
-    "LabVM Admin Username": {
+    "VM Admin Username": {
       "type": "string",
       "value": "[parameters('adminUsername')]"
     },
-    "LabVM Admin Password": {
+    "VM Admin Password": {
       "type": "string",
       "value": "[parameters('adminPassword')]"
     },
-    "LabVM DNS Name": {
+    "Windows VM DNS Name": {
       "type": "string",
       "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses',variables('publicIpAddressName'))).dnsSettings.fqdn]"
+    },
+    "Trainer Username": {
+      "type": "String",
+      "value": "[parameters('trainerUserName')]"
     },
     "Trainer Password": {
       "type": "String",
       "value": "[parameters('trainerUserPassword')]"
-    },
-    "Region": {
-      "type": "string",
-      "value": "[variables('location')]"
     }
   }
 }
