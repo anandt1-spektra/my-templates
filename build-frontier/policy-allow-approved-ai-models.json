@@ -50,7 +50,7 @@
                   },
                   {
                     "field": "Microsoft.CognitiveServices/accounts/deployments/sku.capacity",
-                    "greater": 100
+                    "greater": 150
                   }
                 ]
               }
