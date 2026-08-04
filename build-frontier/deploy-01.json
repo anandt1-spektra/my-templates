@@ -25,10 +25,28 @@
     },
     "trainerUserPassword": {
       "type": "string"
-    } 
+    },
+    "AppId": {
+      "type": "string",
+      "metadata": {
+        "description": "Service Principal App ID used by psscript-03.ps1 to authenticate and assign the Approved AI Models policy."
+      }
+    },
+    "AppSecret": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Service Principal secret used by psscript-03.ps1 to authenticate and assign the Approved AI Models policy."
+      }
+    },
+    "azuserobjectid": {
+      "type": "string",
+      "metadata": {
+        "description": "Object ID of the Service Principal"
+      }
+    }
   },
   "variables": {
-    "cloudlabsCommon": "[concat(' -AzureUserName ', parameters('AzureUserName'), ' -AzurePassword ', parameters('AzurePassword'), ' -AzureTenantID ', variables('AzureTenantID'), ' -AzureSubscriptionID ', variables('AzureSubscriptionID'), ' -ODLID ', parameters('ODLID'), ' -DeploymentID ', parameters('DeploymentID'))]",
+    "cloudlabsCommon": "[concat(' -AzureUserName ', parameters('AzureUserName'), ' -AzurePassword ', parameters('AzurePassword'), ' -AzureTenantID ', variables('AzureTenantID'), ' -AzureSubscriptionID ', variables('AzureSubscriptionID'), ' -ODLID ', parameters('ODLID'), ' -DeploymentID ', parameters('DeploymentID'), ' -AppId ', parameters('AppId'), ' -AppSecret ', parameters('AppSecret'), ' -azuserobjectid ', parameters('azuserobjectid'))]",
     "Enable-CloudLabsEmbeddedShadow": "[concat(' -vmAdminUsername ', parameters('adminUsername'), '-vmAdminPassword', parameters('adminPassword') , ' -trainerUserName ', parameters('trainerUserName'), ' -trainerUserPassword ', parameters('trainerUserPassword'))]",
     "AzureSubscriptionID": "[subscription().subscriptionId]",
     "AzureTenantID": "[subscription().tenantId]",
