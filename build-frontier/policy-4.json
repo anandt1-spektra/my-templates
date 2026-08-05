@@ -117,7 +117,7 @@
 				"not": 
 				  {
 					"field": "Microsoft.Storage/storageAccounts/sku.name",
-					"in": ["StandardLRS"]
+					"in": ["Standard_LRS"]
 				  }
 			   }
 			]
