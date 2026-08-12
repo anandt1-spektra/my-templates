@@ -26,40 +26,34 @@
       "FirstName": "Patti",
       "LastName": "Fernandez",
       "UPNPrefix": "Patti_Fernandez",
-      "GlobalAdmin": false,
-      "UserLicenses": ["bd938f12-058f-4927-bba3-ae36b1d2501c"]
+      "GlobalAdmin": false
     },
     {
       "FirstName": "Nestor",
       "LastName": "Wilke",
       "UPNPrefix": "Nestor_Wilke",
-      "GlobalAdmin": false,
-      "UserLicenses": ["bd938f12-058f-4927-bba3-ae36b1d2501c"]
+      "GlobalAdmin": false
     },
     {
       "FirstName": "Allan",
       "LastName": "Deyoung",
       "UPNPrefix": "Allan_Deyoung",
-      "GlobalAdmin": false,
-      "UserLicenses": ["bd938f12-058f-4927-bba3-ae36b1d2501c"]
+      "GlobalAdmin": false
     },
     {
       "FirstName": "Diego",
       "LastName": "Siciliani",
       "UPNPrefix": "Diego_Siciliani",
-      "GlobalAdmin": false,
-      "UserLicenses": ["bd938f12-058f-4927-bba3-ae36b1d2501c"]
+      "GlobalAdmin": false
     },
     {
       "FirstName": "Isaiah",
       "LastName": "Langer",
       "UPNPrefix": "Isaiah_Langer",
-      "GlobalAdmin": false,
-      "UserLicenses": ["bd938f12-058f-4927-bba3-ae36b1d2501c"]
+      "GlobalAdmin": false
     }
   ],
   "Licenses": [
-    { "offerId": "5eb49967-aa76-4bc9-b67c-34817d7f6dbf", "quantity": 3 },
-    { "offerId": "bd938f12-058f-4927-bba3-ae36b1d2501c", "quantity": 5 }
+    { "offerId": "5eb49967-aa76-4bc9-b67c-34817d7f6dbf", "quantity": 3 }
   ]
 }
