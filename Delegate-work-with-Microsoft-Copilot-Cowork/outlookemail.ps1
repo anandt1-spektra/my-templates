@@ -1,5 +1,27 @@
 ## BEGIN: PLATFORM INSERT START
 param($Request, $TriggerMetadata)
+
+# Unwraps AggregateException / nested InnerExceptions and Graph error bodies so the
+# real cause is surfaced instead of the useless "One or more errors occurred."
+function Resolve-ErrorMessage {
+    param($ErrorRecord)
+    $parts = New-Object System.Collections.Generic.List[string]
+    $ex = $ErrorRecord.Exception
+    while ($ex) {
+        if ($ex -is [System.AggregateException]) {
+            foreach ($ie in $ex.Flatten().InnerExceptions) { [void]$parts.Add($ie.Message) }
+        }
+        else {
+            [void]$parts.Add($ex.Message)
+        }
+        $ex = $ex.InnerException
+    }
+    if ($ErrorRecord.ErrorDetails -and $ErrorRecord.ErrorDetails.Message) {
+        [void]$parts.Add($ErrorRecord.ErrorDetails.Message)
+    }
+    return (($parts | Where-Object { $_ } | Select-Object -Unique) -join " || ")
+}
+
 try
 {
 $sysAddedUsername = $Request.Body.sysAddedUsername
@@ -7,7 +29,23 @@ $sysAddedPassword = $Request.Body.sysAddedPassword | ConvertTo-SecureString -asP
 $sysAddedSubscriptionId = $Request.Body.sysAddedSubscriptionId
 $sysAddedTenantId = $Request.Body.sysAddedTenantId
 $Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $sysAddedUsername, $sysAddedPassword
-Connect-AzAccount -ServicePrincipal -Credential $Credential -Tenant $sysAddedTenantId
+
+# Connect-AzAccount can throw a transient AggregateException ("One or more errors
+# occurred."). It isn't actually used for sending (mail runs off the Graph token),
+# so retry it and surface the real error if it keeps failing.
+$azConnected = $false
+$azAttempt   = 0
+while (-not $azConnected -and $azAttempt -lt 5) {
+    try {
+        $azAttempt++
+        Connect-AzAccount -ServicePrincipal -Credential $Credential -Tenant $sysAddedTenantId -ErrorAction Stop | Out-Null
+        $azConnected = $true
+    }
+    catch {
+        Write-Host "Connect-AzAccount attempt $azAttempt failed: $(Resolve-ErrorMessage $_)"
+        if ($azAttempt -lt 5) { Start-Sleep -Seconds 15 } else { throw }
+    }
+}
 ## END: PLATFORM INSERT END
 
 ## BEGIN: VARIABLES SECTION INSERT START
@@ -460,13 +498,9 @@ Allan Deyoung
             saveToSentItems = "true"
         } | ConvertTo-Json -Depth 6
 
-        $maxRetries = 5
-        $attempt    = 0
-        $success    = $false
-
-        while (-not $success -and $attempt -lt $maxRetries) {
+        $maxRetries = 3
+        for ($attempt = 1; $attempt -le $maxRetries; $attempt++) {
             try {
-                $attempt++
                 Write-Host "Sending (attempt $attempt): FROM $From TO $To | $Subject"
 
                 Invoke-RestMethod `
@@ -476,68 +510,72 @@ Allan Deyoung
                     -Body $emailPayload `
                     -ContentType "application/json"
 
-                $success = $true
                 Write-Host "  -> Sent"
+                return
             }
             catch {
-                Write-Host "  -> Send failed: $($_.Exception.Message)"
-                if ($attempt -lt $maxRetries) {
-                    Write-Host "  -> Retrying in 20 seconds..."
-                    Start-Sleep -Seconds 20
+                # Read the HTTP status if available. 403/404/400 = permanent
+                # (permission missing, mailbox doesn't exist) -> stop retrying and
+                # let the caller record it. 429/5xx/unknown = transient -> retry.
+                $status = $null
+                try { $status = [int]$_.Exception.Response.StatusCode } catch { }
+                $transient = ($status -eq 429 -or $status -ge 500 -or $null -eq $status)
+
+                if (($attempt -lt $maxRetries) -and $transient) {
+                    Write-Host "  -> Transient failure (status=$status). Retrying in 10s..."
+                    Start-Sleep -Seconds 10
+                    continue
                 }
-                else {
-                    throw "Mail failed after $maxRetries attempts (FROM $From TO $To | $Subject)"
-                }
+                throw
             }
         }
     }
 
 
     # --------------------------------------------
-    # SEND ALL
+    # SEND ALL (resilient: one bad mailbox doesn't kill the batch)
     # --------------------------------------------
-    function Send-AllMessages {
-        foreach ($m in $messages) {
-            Send-Mail -From $m.From -To $m.To -Subject $m.Subject -Body $m.Body
-            Start-Sleep -Seconds 4
-        }
-    }
+    $sent     = 0
+    $failures = New-Object System.Collections.Generic.List[string]
 
-    $expectedMailCount = $messages.Count   # 25 send operations
-    $maxAttempts = 4
-    $attempt     = 0
-    $success     = $false
-
-    while (-not $success -and $attempt -lt $maxAttempts) {
+    foreach ($m in $messages) {
         try {
-            $attempt++
-            Write-Host "Seeding batch attempt $attempt"
-            Send-AllMessages
-            Write-Host "All $expectedMailCount emails sent successfully"
-            $success = $true
+            Send-Mail -From $m.From -To $m.To -Subject $m.Subject -Body $m.Body
+            $sent++
         }
         catch {
-            Write-Host "Attempt $attempt failed: $($_.Exception.Message)"
-            if ($attempt -lt $maxAttempts) {
-                Write-Host "Retrying entire batch in 2 minutes..."
-                Start-Sleep -Seconds 120
-            }
-            else {
-                throw "Seeding execution failed after $maxAttempts attempts"
-            }
+            $errMsg = Resolve-ErrorMessage $_
+            Write-Host "FAILED: FROM $($m.From) TO $($m.To) | $($m.Subject) :: $errMsg"
+            [void]$failures.Add("FROM $($m.From) TO $($m.To) [$($m.Subject)] -> $errMsg")
         }
+        Start-Sleep -Seconds 4
     }
 
+    Write-Host "Send summary: $sent sent, $($failures.Count) failed, out of $($messages.Count)"
+
 
     # -----------------------------
-    # Success Response
+    # Final Response (Status reflects reality; details included on failure)
     # -----------------------------
-    $response = @{
-        Status  = "Succeeded"
-        Message = "All $expectedMailCount emails seeded successfully"
-        Domain  = $domain
-        ODLUser = $odlUser
-    } | ConvertTo-Json
+    if ($failures.Count -eq 0) {
+        $response = @{
+            Status  = "Succeeded"
+            Message = "All $($messages.Count) emails seeded successfully"
+            Domain  = $domain
+            ODLUser = $odlUser
+            Sent    = $sent
+        } | ConvertTo-Json
+    }
+    else {
+        $response = @{
+            Status   = "Failed"
+            Message  = "$sent of $($messages.Count) sent; $($failures.Count) failed"
+            Domain   = $domain
+            ODLUser  = $odlUser
+            Sent     = $sent
+            Failures = @($failures)
+        } | ConvertTo-Json -Depth 5
+    }
 
     Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
         StatusCode = [System.Net.HttpStatusCode]::OK
@@ -546,22 +584,23 @@ Allan Deyoung
 
 }
 catch {
-    Write-Host "Function execution failed: $($_.Exception.Message)"
+    $realError = Resolve-ErrorMessage $_
+    Write-Host "Function execution failed: $realError"
     $response = @{
         Status  = "Failed"
-        Message = $_.Exception.Message
+        Message = $realError
     } | ConvertTo-Json
 
     Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
-        StatusCode = [System.Net.HttpStatusCode]::BadRequest
+        StatusCode = [System.Net.HttpStatusCode]::OK
         Body       = $response
     })
 }
 }
 catch
 {
-    $e = $_.Exception
-    $message = @{Status = "Failed"; Message = $e.Message; InvocationId = $TriggerMetadata.InvocationId} | ConvertTo-Json
+    $realError = Resolve-ErrorMessage $_
+    $message = @{Status = "Failed"; Message = $realError; InvocationId = $TriggerMetadata.InvocationId} | ConvertTo-Json
     Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
         StatusCode = [System.Net.HttpStatusCode]::OK
         Body = $message})
