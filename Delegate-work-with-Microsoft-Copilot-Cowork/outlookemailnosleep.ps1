@@ -137,7 +137,7 @@ try {
     # There is no separate Megan_Bowen mailbox: Megan IS the ODL user, so she maps
     # straight to the ODL address passed in azureuser.
     $U = @{
-        Megan   = $odlUser
+        Megan   = "Megan_Bowen@$domain"
         Isaiah  = "Isaiah_Langer@$domain"
         Alex    = "Alex_Wilbur@$domain"
         Nestor  = "Nestor_Wilke@$domain"
