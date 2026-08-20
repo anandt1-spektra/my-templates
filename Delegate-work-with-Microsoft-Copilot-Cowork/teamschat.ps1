@@ -148,23 +148,27 @@ try {
 
 
     # --------------------------------------------
-    # TENANT DOMAIN + USERS  (Megan = ODL user)
+    # TENANT DOMAIN + USERS
     # --------------------------------------------
+    # $azureuser (the ODL/lab account) is used ONLY to derive the tenant domain and
+    # as the delegated seeding caller. It is NO LONGER treated as Megan_Bowen -
+    # Megan_Bowen now resolves to a real Megan_Bowen@<domain> user like everyone else.
     $odlUser = $azureuser
     if ([string]::IsNullOrWhiteSpace($odlUser) -or ($odlUser -notmatch "@")) {
         throw "azureuser is missing or not a valid email; cannot resolve tenant domain."
     }
     $domain = ($odlUser.Split("@")[1]).Trim()
-    Write-Host "Tenant domain: $domain | ODL (Megan): $odlUser"
+    Write-Host "Tenant domain: $domain | seeding caller: $odlUser"
 
-    # UPN prefixes -> resolved to { Upn; Id }. Megan_Bowen maps to the ODL user.
+    # UPN prefixes -> resolved to { Upn; Id }. Every prefix (including Megan_Bowen)
+    # resolves to "<prefix>@<domain>".
     $prefixes = @(
         "Megan_Bowen","Isaiah_Langer","Alex_Wilbur","Nestor_Wilke",
         "Joni_Sherman","Allan_Deyoung","Diego_Siciliani","Patti_Fernandez"
     )
     $U = @{}
     foreach ($p in $prefixes) {
-        $upn = if ($p -eq "Megan_Bowen") { $odlUser } else { "$p@$domain" }
+        $upn = "$p@$domain"
         $U[$p] = @{ Upn = $upn; Id = $null }
     }
 
@@ -263,21 +267,21 @@ try {
     # ============================================
     # Offset = R-x conversation day. Topic $null => leave blank (Megan's 3).
     $chats = @(
-        @{ Name="Nestor, Patti";        Topic=$null;             Offset=2; Members=@("Megan_Bowen","Nestor_Wilke","Patti_Fernandez"); Messages=@(
+        @{ Name="Nestor, Patti";        Topic="Nestor and Patti"; Offset=2; Members=@("Megan_Bowen","Nestor_Wilke","Patti_Fernandez"); Messages=@(
             @{ From="Nestor_Wilke";    Text="Megan - vendor consolidation is now blocking. We need your call on the evaluation criteria before we can shortlist the final two." }
             @{ From="Patti_Fernandez"; Text="Agreed. Megan, can you get to this before the Monday review? Renewal penalty exposure starts in October." }
             @{ From="Megan_Bowen";     Text="Understood - I'll review the criteria doc and come back with a decision this week." }
             @{ From="Nestor_Wilke";    Text="Separately, FYI: the passkey pilot expanded to all of Sales this week and is going smoothly so far." }
         )}
 
-        @{ Name="Allan, Diego, Isaiah"; Topic=$null;             Offset=1; Members=@("Megan_Bowen","Allan_Deyoung","Diego_Siciliani","Isaiah_Langer"); Messages=@(
+        @{ Name="Allan, Diego, Isaiah"; Topic="Allan, Diego, and Isaiah"; Offset=1; Members=@("Megan_Bowen","Allan_Deyoung","Diego_Siciliani","Isaiah_Langer"); Messages=@(
             @{ From="Allan_Deyoung";    Text="Beacon remediation sprint day 2 - 3 of 11 defect cases closed. On track for the 14 August review." }
             @{ From="Diego_Siciliani";  Text="Heads-up: Mobile v3 beta ships on the 21st, so QA capacity will be tight that week." }
             @{ From="Isaiah_Langer";    Text="Reminder for everyone - the vendor decision review is on the 11th. Prep doc goes out Friday." }
             @{ From="Megan_Bowen";      Text="Thanks all. I'll have the criteria signed off before the 11th so we're not blocked." }
         )}
 
-        @{ Name="Alex, Allan, Diego";   Topic=$null;             Offset=2; Members=@("Megan_Bowen","Alex_Wilbur","Allan_Deyoung","Diego_Siciliani"); Messages=@(
+        @{ Name="Alex, Allan, Diego";   Topic="Alex, Allan, and Diego"; Offset=2; Members=@("Megan_Bowen","Alex_Wilbur","Allan_Deyoung","Diego_Siciliani"); Messages=@(
             @{ From="Alex_Wilbur";      Text="Atlas W8 numbers are in - best week yet. The monthly read-out lands on the first business day of September." }
             @{ From="Allan_Deyoung";    Text="Nice results. Megan - do you want Atlas included as a good-news slide in the Summit pack?" }
             @{ From="Diego_Siciliani";  Text="Also flagging: the Summit prep session is Thursday, invites going out today." }
