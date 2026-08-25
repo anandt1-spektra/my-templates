@@ -53,8 +53,9 @@ Set-ItemProperty -Path $AutoLogonRegPath -Name "AutoLogonCount" -Value "1" -type
 # Scheduled Task to Run PostConfig.ps1 screen on logon
 $Trigger= New-ScheduledTaskTrigger -AtLogOn
 $User= "$($env:ComputerName)\azureuser"
-$Action= New-ScheduledTaskAction -Execute "C:\Windows\System32\WindowsPowerShell\v1.0\Powershell.exe" -Argument "-executionPolicy Unrestricted -File C:\Packages\logontask-01.ps1"
+$Action= New-ScheduledTaskAction -Execute "C:\Windows\System32\WindowsPowerShell\v1.0\Powershell.exe" -Argument "-executionPolicy Unrestricted -WindowStyle Hidden -File C:\Packages\logontask-01.ps1"
 Register-ScheduledTask -TaskName "logontask" -Trigger $Trigger -User $User -Action $Action -RunLevel Highest -Force
+Set-ExecutionPolicy -ExecutionPolicy Bypass -Force -ErrorAction SilentlyContinue
 
 # Cli
 choco install azure-cli -y
