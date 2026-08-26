@@ -78,6 +78,9 @@ choco install terraform -y
 # jq
 choco install jq -y
 
+#zsh
+choco install msys2 -y
+
 sleep 5
 choco upgrade nodejs-lts -y
 
