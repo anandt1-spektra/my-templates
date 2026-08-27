@@ -16,63 +16,20 @@ code --install-extension esbenp.prettier-vscode
 code --install-extension dbaeumer.vscode-eslint
 
 sleep 5
-Function CloneLabFiles
-{
-    $GitHubToken = ""
-
-    $RepoUrl     = "https://$GitHubToken@github.com/CloudLabsAI-Azure/MsIQ-cplt-agntsfrntr.git"
-    $Branch      = "post-build-SPLabs"
-    $SourcePath  = "Lab Files"
-    $Destination = "C:\Lab Files"
-    $TempDir     = Join-Path $env:TEMP "MsIQ-clone-$(Get-Random)"
-
-    # Ensure git is available; install via choco if missing
-    if (-not (Get-Command git -ErrorAction SilentlyContinue))
-    {
-        choco install git -y --no-progress
-        $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" +
-                    [System.Environment]::GetEnvironmentVariable("Path","User")
-    }
-
-    Write-Host "Cloning '$SourcePath' from private repository..."
-
-    # Shallow, blobless, sparse clone
-    git clone `
-        --depth 1 `
-        --filter=blob:none `
-        --sparse `
-        --branch $Branch `
-        $RepoUrl `
-        $TempDir
-
-    if ($LASTEXITCODE -ne 0)
-    {
-        throw "Git clone failed. Verify the PAT has access to the repository."
-    }
-
-    Push-Location $TempDir
-
-    git sparse-checkout init --cone
-    git sparse-checkout set "$SourcePath"
-
-    Pop-Location
-
-    if (-not (Test-Path $Destination))
-    {
-        New-Item -ItemType Directory -Path $Destination -Force | Out-Null
-    }
-
-    Copy-Item `
-        -Path (Join-Path $TempDir $SourcePath | Join-Path -ChildPath "*") `
-        -Destination $Destination `
-        -Recurse `
-        -Force
-
-    Remove-Item $TempDir -Recurse -Force
-
-    Write-Host "Lab Files copied successfully to $Destination"
-}
-CloneLabFiles
+https://experienceazure.blob.core.windows.net/templates/tf/frontier-firm-productivity-workiq-copilot-agents/MsIQ-cplt-agntsfrntr-post-build-SPLabs.zip
+$WebClient = New-Object System.Net.WebClient
+ 
+# Create folder if it doesn't exist
+New-Item -ItemType Directory -Path "C:\LabFiles" -Force | Out-Null
+ 
+# Download ZIP
+$WebClient.DownloadFile("https://experienceazure.blob.core.windows.net/templates/tf/frontier-firm-productivity-workiq-copilot-agents/MsIQ-cplt-agntsfrntr-post-build-SPLabs.zip", "C:\LabFiles\MsIQ-cplt-agntsfrntr-post-build-SPLabs.zip")
+ 
+# Extract ZIP into C:\LabFiles
+Expand-Archive -Path "C:\LabFiles\MsIQ-cplt-agntsfrntr-post-build-SPLabs.zip" -DestinationPath "C:\LabFiles" -Force
+ 
+# Delete ZIP after extraction
+Remove-Item "C:\LabFiles\MsIQ-cplt-agntsfrntr-post-build-SPLabs.zip" -Force
 
 sleep 5
 choco install visualstudio2022community -y
