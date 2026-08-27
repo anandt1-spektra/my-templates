@@ -16,7 +16,6 @@ code --install-extension esbenp.prettier-vscode
 code --install-extension dbaeumer.vscode-eslint
 
 sleep 5
-https://experienceazure.blob.core.windows.net/templates/tf/frontier-firm-productivity-workiq-copilot-agents/MsIQ-cplt-agntsfrntr-post-build-SPLabs.zip
 $WebClient = New-Object System.Net.WebClient
  
 # Create folder if it doesn't exist
