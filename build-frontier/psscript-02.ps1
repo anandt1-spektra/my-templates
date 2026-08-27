@@ -43,33 +43,59 @@ InstallVSCode
 
 Function CloneLabFiles
 {
-    $RepoUrl     = "https://github.com/CloudLabsAI-Azure/MsIQ-cplt-agntsfrntr.git"
+    $GitHubToken = "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"
+
+    $RepoUrl     = "https://$GitHubToken@github.com/CloudLabsAI-Azure/MsIQ-cplt-agntsfrntr.git"
     $Branch      = "post-build-SPLabs"
     $SourcePath  = "Lab Files"
     $Destination = "C:\Lab Files"
     $TempDir     = Join-Path $env:TEMP "MsIQ-clone-$(Get-Random)"
 
     # Ensure git is available; install via choco if missing
-    if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+    if (-not (Get-Command git -ErrorAction SilentlyContinue))
+    {
         choco install git -y --no-progress
-        $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+        $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" +
+                    [System.Environment]::GetEnvironmentVariable("Path","User")
     }
 
-    Write-Host "Cloning '$SourcePath' from $RepoUrl ($Branch)..."
+    Write-Host "Cloning '$SourcePath' from private repository..."
 
-    # Shallow, blobless, sparse clone - downloads only the Lab Files folder
-    git clone --depth 1 --filter=blob:none --sparse --branch $Branch $RepoUrl $TempDir
+    # Shallow, blobless, sparse clone
+    git clone `
+        --depth 1 `
+        --filter=blob:none `
+        --sparse `
+        --branch $Branch `
+        $RepoUrl `
+        $TempDir
+
+    if ($LASTEXITCODE -ne 0)
+    {
+        throw "Git clone failed. Verify the PAT has access to the repository."
+    }
+
     Push-Location $TempDir
-    git sparse-checkout set $SourcePath
+
+    git sparse-checkout init --cone
+    git sparse-checkout set "$SourcePath"
+
     Pop-Location
 
-    if (-not (Test-Path $Destination)) {
+    if (-not (Test-Path $Destination))
+    {
         New-Item -ItemType Directory -Path $Destination -Force | Out-Null
     }
-    Copy-Item -Path (Join-Path $TempDir $SourcePath | Join-Path -ChildPath "*") -Destination $Destination -Recurse -Force
+
+    Copy-Item `
+        -Path (Join-Path $TempDir $SourcePath | Join-Path -ChildPath "*") `
+        -Destination $Destination `
+        -Recurse `
+        -Force
 
     Remove-Item $TempDir -Recurse -Force
-    Write-Host "Lab Files copied to $Destination"
+
+    Write-Host "Lab Files copied successfully to $Destination"
 }
 CloneLabFiles
 
