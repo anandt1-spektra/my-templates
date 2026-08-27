@@ -18,7 +18,7 @@ code --install-extension dbaeumer.vscode-eslint
 sleep 5
 Function CloneLabFiles
 {
-    $GitHubToken = "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"
+    $GitHubToken = ""
 
     $RepoUrl     = "https://$GitHubToken@github.com/CloudLabsAI-Azure/MsIQ-cplt-agntsfrntr.git"
     $Branch      = "post-build-SPLabs"
