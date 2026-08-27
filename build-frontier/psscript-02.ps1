@@ -125,9 +125,6 @@ choco --version
 
 choco upgrade vscode -y
 
-sleep 5
-choco install visualstudio2022community -y
-
 Stop-Transcript
  
 Restart-Computer -Force
