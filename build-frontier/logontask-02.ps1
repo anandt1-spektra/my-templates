@@ -15,7 +15,8 @@ code --install-extension ms-vscode.vscode-typescript-next
 code --install-extension esbenp.prettier-vscode
 code --install-extension dbaeumer.vscode-eslint
 
-sleep 10
+sleep 5
+choco install visualstudio2022community -y
 
 Unregister-ScheduledTask -TaskName "logontask" -Confirm:$false 
 
