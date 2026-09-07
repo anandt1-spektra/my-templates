@@ -1,8 +1,12 @@
-Details 
+# Details 
 
-Project Planning Workshop 
-today, 
-8:00 AM–12:00 PM UTC
+Single User hai, with license and extra user nhii hai and uske outlook pr hume ek meeting chaiye with the below details uske liye ye Deployment script hai 
+
+  ```
+  Project Planning Workshop 
+  today, 
+  8:00 AM–12:00 PM UTC
+  ```
 
 
   ```powershell
