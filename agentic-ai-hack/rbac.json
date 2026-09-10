@@ -1,0 +1,22 @@
+{
+    "Name":  "Spektra Custom RBAC",
+    "Id":  null,
+    "IsCustom":  true,
+    "Description":  "Spektra Training Custom Role.",
+    "Actions":  [
+                    "Microsoft.Authorization/*/read",
+                    "Microsoft.CognitiveServices/accounts/*",
+                    "Microsoft.CognitiveServices/accounts/projects/*",
+                    "Microsoft.Resources/deployments/*",
+                    "Microsoft.Resources/subscriptions/resourceGroups/*"
+                ],
+    "NotActions":  [
+
+                   ],
+    "DataActions":  [
+                    "Microsoft.CognitiveServices/accounts/OpenAI/*"
+                ],
+    "NotDataActions":  [
+
+                   ]
+}
