@@ -1,0 +1,198 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "DeploymentID": {
+            "type": "String",
+            "metadata": {
+                "description": "Unique suffix used to name all resources (must be lowercase alphanumeric, no dashes/underscores, kept short so the storage account name stays <= 24 chars)."
+            }
+        },
+        "foundryModelCapacity": {
+            "defaultValue": 10,
+            "type": "Int",
+            "metadata": {
+                "description": "TPM (thousands of tokens/min) capacity for the GPT-5.4 deployment."
+            }
+        },
+        "embeddingModelCapacity": {
+            "defaultValue": 10,
+            "type": "Int",
+            "metadata": {
+                "description": "TPM capacity for the text-embedding-ada-002 deployment."
+            }
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "foundryAccountName": "[concat('contosofoundry-', parameters('DeploymentID'))]",
+        "foundryProjectName": "proj-default",
+        "foundryDeploymentName": "gpt-5.4",
+        "embeddingDeploymentName": "text-embedding-ada-002",
+        "searchServiceName": "[toLower(concat('aisearch-', parameters('DeploymentID')))]",
+        "storageAccountName": "[toLower(concat('contosostr', parameters('DeploymentID')))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.CognitiveServices/accounts",
+            "apiVersion": "2025-06-01",
+            "name": "[variables('foundryAccountName')]",
+            "location": "[variables('location')]",
+            "sku": {
+                "name": "S0"
+            },
+            "kind": "AIServices",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "customSubDomainName": "[variables('foundryAccountName')]",
+                "publicNetworkAccess": "Enabled",
+                "allowProjectManagement": true
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2025-04-01",
+            "name": "foundryProjectAndDeployments",
+            "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', variables('foundryAccountName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "type": "Microsoft.CognitiveServices/accounts/projects",
+                            "apiVersion": "2025-06-01",
+                            "name": "[concat(variables('foundryAccountName'), '/', variables('foundryProjectName'))]",
+                            "location": "[variables('location')]",
+                            "identity": {
+                                "type": "SystemAssigned"
+                            },
+                            "properties": {}
+                        },
+                        {
+                            "type": "Microsoft.CognitiveServices/accounts/deployments",
+                            "apiVersion": "2025-06-01",
+                            "name": "[concat(variables('foundryAccountName'), '/', variables('foundryDeploymentName'))]",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.CognitiveServices/accounts/projects', variables('foundryAccountName'), variables('foundryProjectName'))]"
+                            ],
+                            "sku": {
+                                "name": "GlobalStandard",
+                                "capacity": "[parameters('foundryModelCapacity')]"
+                            },
+                            "properties": {
+                                "model": {
+                                    "format": "OpenAI",
+                                    "name": "gpt-5.4",
+                                    "version": "2026-03-05"
+                                },
+                                "raiPolicyName": "Microsoft.Default"
+                            }
+                        },
+                        {
+                            "type": "Microsoft.CognitiveServices/accounts/deployments",
+                            "apiVersion": "2025-06-01",
+                            "name": "[concat(variables('foundryAccountName'), '/', variables('embeddingDeploymentName'))]",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.CognitiveServices/accounts/deployments', variables('foundryAccountName'), variables('foundryDeploymentName'))]"
+                            ],
+                            "sku": {
+                                "name": "GlobalStandard",
+                                "capacity": "[parameters('embeddingModelCapacity')]"
+                            },
+                            "properties": {
+                                "model": {
+                                    "format": "OpenAI",
+                                    "name": "text-embedding-ada-002",
+                                    "version": "2"
+                                },
+                                "raiPolicyName": "Microsoft.Default"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Search/searchServices",
+            "apiVersion": "2023-11-01",
+            "name": "[variables('searchServiceName')]",
+            "location": "[variables('location')]",
+            "sku": {
+                "name": "basic"
+            },
+            "properties": {
+                "replicaCount": 1,
+                "partitionCount": 1,
+                "hostingMode": "default",
+                "publicNetworkAccess": "enabled",
+                "disableLocalAuth": false,
+                "authOptions": {
+                    "aadOrApiKey": {
+                        "aadAuthFailureMode": "http403"
+                    }
+                },
+                "semanticSearch": "standard"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2023-05-01",
+            "name": "[variables('storageAccountName')]",
+            "location": "[variables('location')]",
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "kind": "StorageV2",
+            "properties": {
+                "accessTier": "Hot",
+                "minimumTlsVersion": "TLS1_2",
+                "supportsHttpsTrafficOnly": true,
+                "allowBlobPublicAccess": true
+            }
+        }
+    ],
+    "outputs": {
+        "foundryAccountName": {
+            "type": "String",
+            "value": "[variables('foundryAccountName')]"
+        },
+        "foundryEndpoint": {
+            "type": "String",
+            "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', variables('foundryAccountName'))).endpoint]"
+        },
+        "foundryProjectName": {
+            "type": "String",
+            "value": "[variables('foundryProjectName')]"
+        },
+        "gptDeploymentName": {
+            "type": "String",
+            "value": "[variables('foundryDeploymentName')]"
+        },
+        "embeddingDeploymentName": {
+            "type": "String",
+            "value": "[variables('embeddingDeploymentName')]"
+        },
+        "searchServiceName": {
+            "type": "String",
+            "value": "[variables('searchServiceName')]"
+        },
+        "searchEndpoint": {
+            "type": "String",
+            "value": "[concat('https://', variables('searchServiceName'), '.search.windows.net')]"
+        },
+        "storageAccountName": {
+            "type": "String",
+            "value": "[variables('storageAccountName')]"
+        },
+        "region": {
+            "type": "String",
+            "value": "[variables('location')]"
+        }
+    }
+}
