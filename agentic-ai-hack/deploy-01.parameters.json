@@ -1,1 +1,15 @@
-
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "DeploymentID": {
+      "value": "GET-DEPLOYMENT-ID"
+    },
+    "foundryModelCapacity": {
+      "value": 10
+    },
+    "embeddingModelCapacity": {
+      "value": 10
+    }
+  }
+}
