@@ -9,14 +9,14 @@
             }
         },
         "foundryModelCapacity": {
-            "defaultValue": 10,
+            "defaultValue": 150,
             "type": "Int",
             "metadata": {
                 "description": "TPM (thousands of tokens/min) capacity for the GPT-5.4 deployment."
             }
         },
         "embeddingModelCapacity": {
-            "defaultValue": 10,
+            "defaultValue": 150,
             "type": "Int",
             "metadata": {
                 "description": "TPM capacity for the text-embedding-ada-002 deployment."
