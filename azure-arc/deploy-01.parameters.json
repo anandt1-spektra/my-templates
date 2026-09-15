@@ -1,0 +1,27 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "windowsAdminUsername": {
+            "value": "arcdemo"
+        },
+        "windowsAdminPassword": {
+            "value": "ArcPassword123!!"
+        },
+        "DeploymentID": {
+      "value": "GET-DEPLOYMENT-ID"
+    },
+       "azureusername": {
+           "value": "GET-AZUSER-UPN"
+        },
+        "azurepassword": {
+           "value": "GET-AZUSER-PASSWORD"
+        },
+         "AppID": {
+      "value": "GET-SERVICEPRINCIPAL-APPLICATION-ID"
+    },
+    "AppSecret": {
+      "value": "GET-SERVICEPRINCIPAL-SECRET"
+    },
+    }
+}
