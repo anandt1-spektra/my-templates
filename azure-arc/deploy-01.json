@@ -1,0 +1,387 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "windowsAdminUsername": {
+      "type": "string"
+    },
+    "windowsAdminPassword": {
+      "type": "securestring"
+    },
+    "AzureUserName": {
+      "type": "string"
+    },
+    "AzurePassword": {
+      "type": "securestring"
+    },
+
+    "DeploymentID": {
+      "type": "string"
+    },
+     "AppID": {
+      "type": "string"
+    },
+    "AppSecret": {
+      "type": "string"
+    }
+    
+
+  },
+  "variables": {
+    "cloudlabsCommon": "[concat(' -AzureUserName ', parameters('AzureUserName'), ' -AzurePassword ', parameters('AzurePassword'), ' -tenantId ', variables('tenantId'), ' -subscriptionid ', variables('subscriptionid'), ' -stagingStorageAccountName ', variables('stagingStorageAccountName'), ' -location ', variables('location'), ' -AppID ', parameters('AppID'), ' -AppSecret ', parameters('AppSecret'))]",
+    "subscriptionid": "[subscription().subscriptionId]",
+    "tenantId": "[subscription().tenantId]",
+    "stagingStorageAccountName": "[format('localbox{0}', uniqueString(resourceGroup().id))]",
+    "addressPrefix": "172.16.0.0/16",
+
+    "networkInterfaceName": "localbox-nic",
+    "networkSecurityGroupName": "localbox-nsg",
+    "publicIpAddressDNSName": "[concat('localboxclient',parameters('DeploymentID'))]",
+    "publicIpAddressName": "localbox-pip",
+    "subnetName": "Subnet",
+    "subnetPrefix": "172.16.1.0/24",
+    "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets/',variables('virtualNetworkName'), variables('subnetName'))]",
+    "virtualMachineSize": "Standard_E32s_v6",
+    "virtualNetworkName": "LocalBox-VNet",
+    "vmName": "localbox-client",
+    "location": "[resourceGroup().location]",
+    "workspaceName": "localbox-workspace"
+  },
+  "resources": [
+       {
+              "type": "Microsoft.OperationalInsights/workspaces",
+              "apiVersion": "2021-06-01",
+              "name": "[variables('workspaceName')]",
+              "location": "[variables('location')]",
+              "properties": {
+                "sku": {
+                  "name": "pergb2018"
+                }
+              }
+            },
+       {
+              "type": "Microsoft.Storage/storageAccounts",
+              "apiVersion": "2021-06-01",
+              "name": "[variables('stagingStorageAccountName')]",
+              "location": "[variables('location')]",
+              "sku": {
+                "name": "Standard_LRS"
+              },
+              "kind": "StorageV2",
+              "properties": {
+                "supportsHttpsTrafficOnly": true
+              }
+            },
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "apiVersion": "2017-04-01",
+      "name": "[variables('virtualNetworkName')]",
+      "location": "[variables('location')]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('addressPrefix')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('subnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('subnetPrefix')]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/publicIpAddresses",
+      "apiVersion": "2017-08-01",
+      "name": "[variables('publicIpAddressName')]",
+      "location": "[variables('location')]",
+      "properties": {
+        "publicIpAllocationMethod": "Dynamic",
+        "dnsSettings": {
+          "domainNameLabel": "[concat(variables('publicIpAddressDNSName'))]"
+        }
+      }
+    },
+    {
+              "type": "Microsoft.Compute/virtualMachines",
+              "apiVersion": "2022-03-01",
+              "name": "[variables('vmName')]",
+              "location": "[variables('location')]",
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "properties": {
+                "hardwareProfile": {
+                  "vmSize": "Standard_E32s_v6"
+                },
+                "storageProfile": {
+                  "osDisk": {
+                    "name": "[format('{0}-OSDisk', variables('vmName'))]",
+                    "caching": "ReadWrite",
+                    "createOption": "FromImage",
+                    "managedDisk": {
+                      "storageAccountType": "Premium_LRS"
+                    },
+                    "diskSizeGB": 1024
+                  },
+                  "imageReference": {
+                    "publisher": "MicrosoftWindowsServer",
+                    "offer": "WindowsServer",
+                    "sku": "2025-datacenter-g2",
+                    "version": "latest"
+                  },
+                  "dataDisks": [
+                    {
+                      "name": "[format('{0}-DataDisk_0', variables('vmName'))]",
+                      "diskSizeGB": 256,
+                      "createOption": "Empty",
+                      "lun": 0,
+                      "caching": "None",
+                      "writeAcceleratorEnabled": false,
+                      "managedDisk": {
+                        "storageAccountType": "Premium_LRS"
+                      }
+                    },
+                    {
+                      "name": "[format('{0}-DataDisk_1', variables('vmName'))]",
+                      "diskSizeGB": 256,
+                      "createOption": "Empty",
+                      "lun": 1,
+                      "caching": "None",
+                      "writeAcceleratorEnabled": false,
+                      "managedDisk": {
+                        "storageAccountType": "Premium_LRS"
+                      }
+                    },
+                    {
+                      "name": "[format('{0}-DataDisk_2', variables('vmName'))]",
+                      "diskSizeGB": 256,
+                      "createOption": "Empty",
+                      "lun": 2,
+                      "caching": "None",
+                      "writeAcceleratorEnabled": false,
+                      "managedDisk": {
+                        "storageAccountType": "Premium_LRS"
+                      }
+                    },
+                    {
+                      "name": "[format('{0}-DataDisk_3', variables('vmName'))]",
+                      "diskSizeGB": 256,
+                      "createOption": "Empty",
+                      "lun": 3,
+                      "caching": "None",
+                      "writeAcceleratorEnabled": false,
+                      "managedDisk": {
+                        "storageAccountType": "Premium_LRS"
+                      }
+                    },
+                    {
+                      "name": "[format('{0}-DataDisk_4', variables('vmName'))]",
+                      "diskSizeGB": 256,
+                      "createOption": "Empty",
+                      "lun": 4,
+                      "caching": "None",
+                      "writeAcceleratorEnabled": false,
+                      "managedDisk": {
+                        "storageAccountType": "Premium_LRS"
+                      }
+                    },
+                    {
+                      "name": "[format('{0}-DataDisk_5', variables('vmName'))]",
+                      "diskSizeGB": 256,
+                      "createOption": "Empty",
+                      "lun": 5,
+                      "caching": "None",
+                      "writeAcceleratorEnabled": false,
+                      "managedDisk": {
+                        "storageAccountType": "Premium_LRS"
+                      }
+                    },
+                    {
+                      "name": "[format('{0}-DataDisk_6', variables('vmName'))]",
+                      "diskSizeGB": 256,
+                      "createOption": "Empty",
+                      "lun": 6,
+                      "caching": "None",
+                      "writeAcceleratorEnabled": false,
+                      "managedDisk": {
+                        "storageAccountType": "Premium_LRS"
+                      }
+                    },
+                    {
+                      "name": "[format('{0}-DataDisk_7', variables('vmName'))]",
+                      "diskSizeGB": 256,
+                      "createOption": "Empty",
+                      "lun": 7,
+                      "caching": "None",
+                      "writeAcceleratorEnabled": false,
+                      "managedDisk": {
+                        "storageAccountType": "Premium_LRS"
+                      }
+                    }
+                  ]
+                },
+                "networkProfile": {
+                  "networkInterfaces": [
+                    {
+                      "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))]"
+                    }
+                  ]
+                },
+                "osProfile": {
+                  "computerName": "[variables('vmName')]",
+                  "adminUsername": "[parameters('windowsAdminUsername')]",
+                  "adminPassword": "[parameters('windowsAdminPassword')]",
+                  "windowsConfiguration": {
+                    "provisionVMAgent": true,
+                    "enableAutomaticUpdates": false
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))]"
+              ]
+            },
+    {
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2017-06-01",
+      "name": "[variables('networkSecurityGroupName')]",
+      "location": "[variables('location')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "default-allow-rdp",
+            "properties": {
+              "priority": 110,
+              "protocol": "TCP",
+              "access": "Allow",
+              "direction": "Inbound",
+              "sourceAddressPrefix": "*",
+              "sourcePortRange": "*",
+              "destinationAddressPrefix": "*",
+              "destinationPortRange": "3389"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('vmName'),'/', 'winExtension')]",
+      "apiVersion": "2015-06-15",
+      "location": "[resourceGroup().location]",
+      "comments": "Script",
+      "tags": {
+        "displayName": "VM Extension"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'))]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "CustomScriptExtension",
+        "typeHandlerVersion": "1.8",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": [
+            "https://experienceazure.blob.core.windows.net/templates/cloudlabs-common/cloudlabs-windows-functions.ps1",
+            "https://raw.githubusercontent.com/CloudLabsAI-Azure/azure_arc/refs/heads/backup/azure_jumpstart_localbox/artifacts/PowerShell/Bootstrap.ps1"
+          ]
+        },
+        "protectedSettings": {
+          "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File Bootstrap.ps1', variables('cloudlabsCommon'))]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "apiVersion": "2016-09-01",
+      "name": "[variables('networkInterfaceName')]",
+      "location": "[variables('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
+        "[concat('Microsoft.Network/publicIpAddresses/', variables('publicIpAddressName'))]",
+        "[concat('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroupName'))]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "subnet": {
+                "id": "[variables('subnetRef')]"
+              },
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIpAddress": {
+                "id": "[resourceId(resourceGroup().name,'Microsoft.Network/publicIpAddresses', variables('publicIpAddressName'))]"
+              }
+            }
+          }
+        ],
+        "networkSecurityGroup": {
+          "id": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
+        }
+      }
+    },
+    {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "name": "[guid(resourceId('Microsoft.Compute/virtualMachines', variables('vmName')), 'Microsoft.Authorization/roleAssignments', 'Owner')]",
+              "properties": {
+                "principalId": "[reference(resourceId('Microsoft.Compute/virtualMachines', variables('vmName')), '2022-03-01', 'full').identity.principalId]",
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', '8e3af657-a8ff-443c-a75c-2fe8c4bcb635')]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines', variables('vmName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "name": "[guid(resourceId('Microsoft.Compute/virtualMachines', variables('vmName')), 'Microsoft.Authorization/roleAssignments', 'KeyVaultAdministrator')]",
+              "properties": {
+                "principalId": "[reference(resourceId('Microsoft.Compute/virtualMachines', variables('vmName')), '2022-03-01', 'full').identity.principalId]",
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', '00482a5a-887f-4fb3-b363-3b7fe8e74483')]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines', variables('vmName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "name": "[guid(resourceId('Microsoft.Compute/virtualMachines', variables('vmName')), 'Microsoft.Authorization/roleAssignments', 'StorageAccountContributor')]",
+              "properties": {
+                "principalId": "[reference(resourceId('Microsoft.Compute/virtualMachines', variables('vmName')), '2022-03-01', 'full').identity.principalId]",
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', '17d1049b-9a84-46fb-8f53-869881c3d3ab')]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines', variables('vmName'))]"
+              ]
+            }
+  ],
+  "outputs": {
+     "HCIHost VM DNS": {
+      "value": "[concat('localboxclient',parameters('DeploymentID'), '.', resourceGroup().location, '.cloudapp.azure.com')]",
+      "type": "string"
+    },
+    "ARCHost VM username": {
+      "value": "arcdemo",
+      "type": "string"
+    },
+    "ARCHost VM password": {
+      "value": "ArcPassword123!!",
+      "type": "string"
+    },
+    "DeploymentID": {
+      "type": "string",
+      "value": "[parameters('DeploymentID')]"
+    }
+  }
+}
